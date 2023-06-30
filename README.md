@@ -7,6 +7,14 @@
 
 YouTube REST API client for Go
 
+## Currently implemented
+
+* Video details
+* Channel details
+* Search
+
+## Example
+
 ```go
 yt := youtubeapi.New(httpc, apiKey)
 item, err := yt.GetVideo(`dQw4w9WgXcQ`)
