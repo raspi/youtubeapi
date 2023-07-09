@@ -25,7 +25,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Printf(`%v %v %v`, ch.PublishedAt, ch.Title, ch.Description)
+	fmt.Printf(`%v %v %v`, ch.Snippet.PublishedAt, ch.Snippet.Title, ch.Snippet.Description)
 
 	custom := map[string]string{
 		`regionCode`:        `US`,

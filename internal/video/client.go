@@ -2,19 +2,25 @@ package video
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/raspi/youtubeapi/internal/shared"
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const API_URL = "https://www.googleapis.com/youtube/v3/videos"
 
+// Client is a YouTube REST API client for videos
+// See https://developers.google.com/youtube/v3/docs/videos/list
 type Client struct {
 	apiKey string
 	cl     *http.Client
 }
 
+// New returns a new YouTube Video client
+// See Client
 func New(apikey string, client *http.Client) *Client {
 	return &Client{
 		apiKey: apikey,
@@ -22,26 +28,79 @@ func New(apikey string, client *http.Client) *Client {
 	}
 }
 
+// Get returns details for single video
 func (s Client) Get(id string) (*Item, error) {
-	q := url.Values{}
-	q.Set(`id`, id)
-	q.Set(`key`, s.apiKey)
-	q.Set(`part`, `snippet`)
+	items, err := s.GetIds([]string{id})
+	if err != nil {
+		return nil, err
+	}
 
+	if len(items) > 0 {
+		return &items[0], nil
+	}
+
+	return nil, nil
+}
+
+// GetIds returns details for multiple videos
+func (s Client) GetIds(ids []string) ([]Item, error) {
+	if ids == nil {
+		return nil, fmt.Errorf(`nil ids`)
+	}
+
+	if len(ids) == 0 {
+		return nil, fmt.Errorf(`no ids`)
+	}
+
+	for idx, id := range ids {
+		if id == `` {
+			return nil, fmt.Errorf(`empty id at pos %d`, idx)
+		}
+	}
+
+	// the snippet property contains the channelId, title, description, tags, and categoryId properties.
+	// As such, if you set part=snippet, the API response will contain all of those properties.
+	// The following list contains the part names that you can include in the parameter value:
+	//
+	// contentDetails (duration, definition (hd), licensed) See: ContentDetails
+	// fileDetails (auth?)
+	// id (video id) string
+	// liveStreamingDetails
+	// localizations
+	// player (returns iframe HTML)
+	// processingDetails (auth?)
+	// recordingDetails (empty?)
+	// snippet (default) See: Snippet
+	// statistics (views, etc) See: Statistics
+	// status (is embeddable) See: Status
+	// suggestions
+	// topicDetails (entertainment, etc) See: TopicDetails
+	parts := []string{`id`, `snippet`, `status`, `contentDetails`, `statistics`, `topicDetails`}
+
+	// Query string
+	q := url.Values{}
+	q.Set(`id`, strings.Join(ids, `,`))
+	q.Set(`key`, s.apiKey)
+	q.Set(`part`, strings.Join(parts, `,`))
+
+	// Make HTTP GET request
 	resp, err := s.cl.Get(API_URL + `?` + q.Encode())
 	if err != nil {
 		return nil, err
 	}
-
 	defer resp.Body.Close()
 
+	// Read JSON
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`couldn't load body: %v`, err)
 	}
 
 	if resp.StatusCode == http.StatusOK {
+		// Got valid result
 		var r Result
+
+		// Parse JSON
 		err = json.Unmarshal(content, &r)
 		if err != nil {
 			return nil, err
@@ -49,16 +108,17 @@ func (s Client) Get(id string) (*Item, error) {
 
 		if r.PageInfo.TotalResults == 0 || len(r.Items) == 0 {
 			// No results
-			return nil, shared.NotFound{}
+			return []Item{}, nil
 		}
 
-		return &r.Items[0], nil
+		return r.Items, nil
 	}
 
+	// Something went wrong
 	var tmperr shared.APIError
 	err = json.Unmarshal(content, &tmperr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`JSON parsing error (error result): %v`, err)
 	}
 
 	return nil, tmperr.Error

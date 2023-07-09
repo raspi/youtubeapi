@@ -8,17 +8,17 @@ import (
 // TODO: move to shared?
 
 type Result struct {
-	Kind     string          `json:"kind"`
-	Etag     string          `json:"etag"`
+	//Kind     string          `json:"kind"`
+	Etag     string          `json:"etag"` // for caching
 	PageInfo shared.PageInfo `json:"pageInfo"`
 	Items    []Item          `json:"items"`
 }
 
 type Item struct {
-	Kind    string  `json:"kind"`
-	Etag    string  `json:"etag"`
-	ID      string  `json:"id"`
-	Snippet Snippet `json:"snippet"`
+	//Kind    string  `json:"kind"`
+	Etag      string  `json:"etag"` // for caching
+	ChannelID string  `json:"id"`   // Channel ID
+	Snippet   Snippet `json:"snippet"`
 }
 
 type Snippet struct {

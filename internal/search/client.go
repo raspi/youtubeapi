@@ -75,7 +75,7 @@ func (s Client) Search(query string, custom map[string]string) (*Result, error) 
 
 		if r.PageInfo.TotalResults == 0 || len(r.Items) == 0 {
 			// No results
-			return nil, shared.NotFound{}
+			return nil, nil
 		}
 
 		return &r, nil
