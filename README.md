@@ -8,6 +8,14 @@
 YouTube REST API v3 client for Go. 
 For searching and getting details of YouTube videos and channels.
 
+## Currently implemented
+
+* Video details
+* Channel details
+* Search
+
+## Example
+
 ```go
 yt := youtubeapi.New(httpc, apiKey)
 item, err := yt.GetVideo(`dQw4w9WgXcQ`)
