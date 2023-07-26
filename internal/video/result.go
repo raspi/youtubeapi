@@ -40,7 +40,7 @@ type Snippet struct {
 }
 
 type ContentDetails struct {
-	Duration        string `json:"duration"`   // ISO 8601
+	Duration        string `json:"duration"`   // TODO: parse the ISO 8601 as time.Duration
 	Dimension       string `json:"dimension"`  // 2d
 	Definition      string `json:"definition"` // hd
 	Caption         string `json:"caption"`
@@ -58,6 +58,9 @@ type Status struct {
 	MadeForKids         bool   `json:"madeForKids"`
 }
 
+// Statistics lists video statistics such as likes and views
+// the counts seems to be accurate at first and then string like "200M"
+// TODO: maybe there's way to converto to uint64 or float64?
 type Statistics struct {
 	ViewCount     string `json:"viewCount"`
 	LikeCount     string `json:"likeCount"`

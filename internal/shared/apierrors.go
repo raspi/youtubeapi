@@ -2,6 +2,7 @@ package shared
 
 import "fmt"
 
+// APIError is error from YouTube REST API
 type APIError struct {
 	Error APIErrorError `json:"error"`
 }
