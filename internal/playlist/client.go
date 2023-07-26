@@ -12,11 +12,13 @@ import (
 
 const API_URL = "https://www.googleapis.com/youtube/v3/playlistItems"
 
+// Client is HTTP client for YouTube playlist REST API v3
 type Client struct {
 	apiKey string
 	cl     *http.Client
 }
 
+// New uses YouTube playlist REST API
 func New(apikey string, client *http.Client) *Client {
 	return &Client{
 		apiKey: apikey,
@@ -24,6 +26,7 @@ func New(apikey string, client *http.Client) *Client {
 	}
 }
 
+// GetId fetches a playlist with given ID
 func (s Client) GetId(id string, custom map[string]string) ([]Item, error) {
 	if id == `` {
 		return nil, fmt.Errorf(`no id`)
