@@ -52,3 +52,4 @@ fmt.Printf(`%v`, res)
 * https://developers.google.com/youtube/v3/docs/channels
 * https://developers.google.com/youtube/v3/docs/search/list
 * https://developers.google.com/youtube/v3/docs/playlistItems/list
+* https://console.cloud.google.com/apis/api/youtube.googleapis.com
