@@ -2,6 +2,7 @@ package youtubeapi
 
 import (
 	"github.com/raspi/youtubeapi/internal/channel"
+	"github.com/raspi/youtubeapi/internal/playlist"
 	"github.com/raspi/youtubeapi/internal/search"
 	"github.com/raspi/youtubeapi/internal/video"
 	"net/http"
@@ -11,9 +12,10 @@ import (
 // See [internal](internal) directory for implementation details
 // See https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas
 type YoutubeAPI struct {
-	videoClient   *video.Client
-	channelClient *channel.Client
-	searchClient  *search.Client
+	videoClient    *video.Client
+	channelClient  *channel.Client
+	searchClient   *search.Client
+	playlistClient *playlist.Client
 }
 
 // New creates a new YouTube HTTP REST API v3 client
@@ -33,9 +35,10 @@ func New(cl *http.Client, apikey string) *YoutubeAPI {
 	}
 
 	return &YoutubeAPI{
-		videoClient:   video.New(apikey, cl),
-		channelClient: channel.New(apikey, cl),
-		searchClient:  search.New(apikey, cl),
+		videoClient:    video.New(apikey, cl),
+		channelClient:  channel.New(apikey, cl),
+		searchClient:   search.New(apikey, cl),
+		playlistClient: playlist.New(apikey, cl),
 	}
 }
 
@@ -101,4 +104,14 @@ func (api YoutubeAPI) GetChannels(channelIds []string) ([]channel.Item, error) {
 // See https://developers.google.com/youtube/v3/docs/search/list
 func (api YoutubeAPI) Search(query string, customParameters map[string]string) (*search.Result, error) {
 	return api.searchClient.Search(query, customParameters)
+}
+
+// GetPlaylist fetches given playlists' items
+func (api YoutubeAPI) GetPlaylist(playlistId string, customParameters map[string]string) ([]playlist.Item, error) {
+	return api.playlistClient.GetId(playlistId, customParameters)
+}
+
+// GetPlaylistItems fetches items (videos) which are *in* some playlist
+func (api YoutubeAPI) GetPlaylistItems(plItemIds []string, customParameters map[string]string) ([]playlist.Item, error) {
+	return api.playlistClient.GetItemIds(plItemIds, customParameters)
 }
