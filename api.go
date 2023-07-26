@@ -40,23 +40,60 @@ func New(cl *http.Client, apikey string) *YoutubeAPI {
 }
 
 // GetVideo fetches video information from YouTube REST API, see internal/video for more details
-func (api YoutubeAPI) GetVideo(id string) (*video.Item, error) {
-	return api.videoClient.Get(id)
+func (api YoutubeAPI) GetVideo(videoId string) (*video.Item, error) {
+	res, err := api.GetVideos([]string{videoId})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	return &res[0], err
 }
 
 // GetVideos fetches multiple video information from YouTube REST API, see internal/video for more details
-func (api YoutubeAPI) GetVideos(ids []string) ([]video.Item, error) {
-	return api.videoClient.GetIds(ids)
+func (api YoutubeAPI) GetVideos(videoIds []string) ([]video.Item, error) {
+	return api.videoClient.GetIds(videoIds)
+}
+
+// GetVideoStats fetches video statistics from YouTube REST API, see internal/video for more details
+func (api YoutubeAPI) GetVideoStats(videoId string) (*video.Item, error) {
+	res, err := api.GetVideosStats([]string{videoId})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	return &res[0], nil
+}
+
+// GetVideosStats fetches multiple video information from YouTube REST API, see internal/video for more details
+func (api YoutubeAPI) GetVideosStats(videoIds []string) ([]video.Item, error) {
+	return api.videoClient.GetIdsStats(videoIds)
 }
 
 // GetChannel fetches channel information from YouTube REST API, see internal/channel for more details
-func (api YoutubeAPI) GetChannel(id string) (*channel.Item, error) {
-	return api.channelClient.Get(id)
+func (api YoutubeAPI) GetChannel(channelId string) (*channel.Item, error) {
+	res, err := api.GetChannels([]string{channelId})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	return &res[0], nil
 }
 
 // GetChannels fetches multiple channel information from YouTube REST API, see internal/channel for more details
-func (api YoutubeAPI) GetChannels(ids []string) ([]channel.Item, error) {
-	return api.channelClient.GetIds(ids)
+func (api YoutubeAPI) GetChannels(channelIds []string) ([]channel.Item, error) {
+	return api.channelClient.GetIds(channelIds)
 }
 
 // Search searches YouTube REST API with given query, see internal/search for more details

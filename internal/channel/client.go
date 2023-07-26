@@ -26,19 +26,6 @@ func New(apikey string, client *http.Client) *Client {
 	}
 }
 
-func (s Client) Get(id string) (*Item, error) {
-	items, err := s.GetIds([]string{id})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(items) > 0 {
-		return &items[0], nil
-	}
-
-	return nil, nil
-}
-
 func (s Client) GetIds(ids []string) ([]Item, error) {
 	if ids == nil {
 		return nil, fmt.Errorf(`nil ids`)

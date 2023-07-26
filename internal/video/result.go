@@ -21,7 +21,7 @@ type Item struct {
 	Snippet        Snippet        `json:"snippet"`
 	ContentDetails ContentDetails `json:"contentDetails"`
 	Status         Status         `json:"status"`
-	Statistics     Statistics     `json:"statistics"`
+	Statistics     *Statistics    `json:"statistics,omitempty"`
 	TopicDetails   TopicDetails   `json:"topicDetails"`
 }
 
@@ -53,7 +53,7 @@ type Status struct {
 	UploadStatus        string `json:"uploadStatus"`  // processed
 	PrivacyStatus       string `json:"privacyStatus"` // public
 	License             string `json:"license"`       // youtube
-	Embeddable          bool   `json:"embeddable"`
+	Embeddable          bool   `json:"embeddable"`    // Other sites etc. can embed the video?
 	PublicStatsViewable bool   `json:"publicStatsViewable"`
 	MadeForKids         bool   `json:"madeForKids"`
 }
