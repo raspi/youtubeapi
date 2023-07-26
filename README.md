@@ -6,13 +6,14 @@
 
 
 YouTube REST API v3 client for Go. 
-For searching and getting details of YouTube videos and channels.
+For searching and getting details of YouTube videos, channels and playlists.
 
 ## Currently implemented
 
 * Video details
 * Channel details
 * Search
+* Playlists
 
 ## Example
 
@@ -50,3 +51,4 @@ fmt.Printf(`%v`, res)
 * https://developers.google.com/youtube/v3/docs/videos/list
 * https://developers.google.com/youtube/v3/docs/channels
 * https://developers.google.com/youtube/v3/docs/search/list
+* https://developers.google.com/youtube/v3/docs/playlistItems/list
