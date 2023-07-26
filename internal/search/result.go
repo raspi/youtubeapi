@@ -8,7 +8,7 @@ import (
 // TODO: move to shared?
 
 type Result struct {
-	Kind          string          `json:"kind"`
+	//Kind          string          `json:"kind"`
 	Etag          string          `json:"etag"`
 	NextPageToken string          `json:"nextPageToken"`
 	RegionCode    string          `json:"regionCode"`
@@ -17,7 +17,7 @@ type Result struct {
 }
 
 type Item struct {
-	Kind    string  `json:"kind"`
+	//Kind    string  `json:"kind"`
 	Etag    string  `json:"etag"`
 	ID      ID      `json:"id"`
 	Snippet Snippet `json:"snippet"`
