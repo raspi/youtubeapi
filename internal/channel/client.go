@@ -111,7 +111,7 @@ func (s Client) GetIds(ids []string) ([]Item, error) {
 }
 
 // GetIdsStats returns statistics of given channel IDs
-// Since statistics changes more than other video details,
+// Since statistics changes more than other channel details,
 // it has been split here for better caching (use ETag)
 func (s Client) GetIdsStats(ids []string) ([]Item, error) {
 	parts := []string{
