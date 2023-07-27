@@ -12,7 +12,7 @@ import (
 
 const API_URL = "https://www.googleapis.com/youtube/v3/playlists"
 
-// Client ...
+// Client is HTTP client for YouTube playlist REST API v3
 // See https://developers.google.com/youtube/v3/docs/playlists/list
 type Client struct {
 	apiKey string
