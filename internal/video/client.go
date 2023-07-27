@@ -51,6 +51,10 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 		return nil, fmt.Errorf(`no ids given`)
 	}
 
+	if len(ids) > 50 {
+		return nil, fmt.Errorf(`over 50 ids`)
+	}
+
 	for idx, id := range ids {
 		if id == `` {
 			return nil, fmt.Errorf(`empty id at pos %d`, idx)

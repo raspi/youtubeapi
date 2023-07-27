@@ -20,3 +20,9 @@ type Thumbnails struct {
 	Medium   *ThumbImage `json:"medium,omitempty"`   // 320x180 https://i.ytimg.com/vi/<video id>/mqdefault.jpg
 	Default  *ThumbImage `json:"default,omitempty"`  // 120x90 https://i.ytimg.com/vi/<video id>/default.jpg
 }
+
+// Meta is for custom parameter(s) so that next page(s) can be queried
+type Meta struct {
+	ETag          string  `json:"etag"`                      // For caching
+	NextPageToken *string `json:"next_page_token,omitempty"` // Next page, nil if there's no next page, for custom parameters (`pageToken`)
+}

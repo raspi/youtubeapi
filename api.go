@@ -3,7 +3,9 @@ package youtubeapi
 import (
 	"github.com/raspi/youtubeapi/internal/channel"
 	"github.com/raspi/youtubeapi/internal/playlist"
+	"github.com/raspi/youtubeapi/internal/playlistitem"
 	"github.com/raspi/youtubeapi/internal/search"
+	"github.com/raspi/youtubeapi/internal/shared"
 	"github.com/raspi/youtubeapi/internal/video"
 	"net/http"
 )
@@ -12,10 +14,11 @@ import (
 // See [internal](internal) directory for implementation details
 // See https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas
 type YoutubeAPI struct {
-	videoClient    *video.Client
-	channelClient  *channel.Client
-	searchClient   *search.Client
-	playlistClient *playlist.Client
+	videoClient        *video.Client
+	channelClient      *channel.Client
+	searchClient       *search.Client
+	playlistItemClient *playlistitem.Client // More details, video IDs, etc
+	playlistClient     *playlist.Client     // Only video count, etc
 }
 
 // New creates a new YouTube HTTP REST API v3 client
@@ -35,10 +38,11 @@ func New(cl *http.Client, apikey string) *YoutubeAPI {
 	}
 
 	return &YoutubeAPI{
-		videoClient:    video.New(apikey, cl),
-		channelClient:  channel.New(apikey, cl),
-		searchClient:   search.New(apikey, cl),
-		playlistClient: playlist.New(apikey, cl),
+		videoClient:        video.New(apikey, cl),
+		channelClient:      channel.New(apikey, cl),
+		searchClient:       search.New(apikey, cl),
+		playlistItemClient: playlistitem.New(apikey, cl),
+		playlistClient:     playlist.New(apikey, cl),
 	}
 }
 
@@ -99,6 +103,25 @@ func (api YoutubeAPI) GetChannels(channelIds []string) ([]channel.Item, error) {
 	return api.channelClient.GetIds(channelIds)
 }
 
+// GetChannelStats fetches statistics of given channel ID from YouTube REST API, see internal/channel for more details
+func (api YoutubeAPI) GetChannelStats(channelId string) (*channel.Item, error) {
+	res, err := api.GetChannelStatsMany([]string{channelId})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	return &res[0], nil
+}
+
+// GetChannelStatsMany fetches statistics of given channel ID(s) from YouTube REST API, see internal/channel for more details
+func (api YoutubeAPI) GetChannelStatsMany(channelIds []string) ([]channel.Item, error) {
+	return api.channelClient.GetIdsStats(channelIds)
+}
+
 // Search searches YouTube REST API with given query, see internal/search for more details
 // Note: the search consumes more API quota
 // See https://developers.google.com/youtube/v3/docs/search/list
@@ -106,12 +129,36 @@ func (api YoutubeAPI) Search(query string, customParameters map[string]string) (
 	return api.searchClient.Search(query, customParameters)
 }
 
-// GetPlaylist fetches given playlists' items
-func (api YoutubeAPI) GetPlaylist(playlistId string, customParameters map[string]string) ([]playlist.Item, error) {
-	return api.playlistClient.GetId(playlistId, customParameters)
+// GetPlaylistVideos fetches given playlists' videos
+func (api YoutubeAPI) GetPlaylistVideos(playlistId string, customParameters map[string]string) ([]playlistitem.Item, shared.Meta, error) {
+	return api.playlistItemClient.GetPlaylistIdItems(playlistId, customParameters)
 }
 
-// GetPlaylistItems fetches items (videos) which are *in* some playlist
-func (api YoutubeAPI) GetPlaylistItems(plItemIds []string, customParameters map[string]string) ([]playlist.Item, error) {
-	return api.playlistClient.GetItemIds(plItemIds, customParameters)
+// GetPlaylistVideoItems fetches items (videos) which are *in* some playlistClient
+func (api YoutubeAPI) GetPlaylistVideoItems(plItemIds []string, customParameters map[string]string) ([]playlistitem.Item, error) {
+	return api.playlistItemClient.GetItemIds(plItemIds, customParameters)
+}
+
+// GetChannelPlaylists fetches playlists meta information (no videos) from given channel ID
+func (api YoutubeAPI) GetChannelPlaylists(channelId string, customParameters map[string]string) ([]playlist.Item, shared.Meta, error) {
+	return api.playlistClient.GetChannelPlaylists(channelId, customParameters)
+}
+
+// GetPlaylist fetches given playlists' meta information (no videos)
+func (api YoutubeAPI) GetPlaylist(playlistId string) (*playlist.Item, error) {
+	res, err := api.GetPlaylists([]string{playlistId})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(res) == 0 {
+		return nil, nil
+	}
+
+	return &res[0], nil
+}
+
+// GetPlaylists fetches given list of playlists' meta information (no videos)
+func (api YoutubeAPI) GetPlaylists(playlistIds []string) ([]playlist.Item, error) {
+	return api.playlistClient.GetPlaylists(playlistIds)
 }

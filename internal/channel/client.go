@@ -26,7 +26,25 @@ func New(apikey string, client *http.Client) *Client {
 	}
 }
 
-func (s Client) GetIds(ids []string) ([]Item, error) {
+// getIds fetches details of given channel ID(s)
+//
+// The part parameter specifies a comma-separated list of one or more channel resource properties that the API response will include.
+//
+// If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set part=contentDetails, the API response will also contain all of those nested properties.
+//
+// The following list contains the part names that you can include in the parameter value:
+//
+//	auditDetails
+//	brandingSettings
+//	contentDetails
+//	contentOwnerDetails
+//	id
+//	localizations
+//	snippet
+//	statistics
+//	status
+//	topicDetails
+func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 	if ids == nil {
 		return nil, fmt.Errorf(`nil ids`)
 	}
@@ -35,29 +53,15 @@ func (s Client) GetIds(ids []string) ([]Item, error) {
 		return nil, fmt.Errorf(`no ids`)
 	}
 
+	if len(ids) > 50 {
+		return nil, fmt.Errorf(`over 50 ids`)
+	}
+
 	for idx, id := range ids {
 		if id == `` {
 			return nil, fmt.Errorf(`empty id at pos %d`, idx)
 		}
 	}
-
-	// The part parameter specifies a comma-separated list of one or more channel resource properties that the API response will include.
-	//
-	// If the parameter identifies a property that contains child properties, the child properties will be included in the response. For example, in a channel resource, the contentDetails property contains other properties, such as the uploads properties. As such, if you set part=contentDetails, the API response will also contain all of those nested properties.
-	//
-	// The following list contains the part names that you can include in the parameter value:
-	//
-	//    auditDetails
-	//    brandingSettings
-	//    contentDetails
-	//    contentOwnerDetails
-	//    id
-	//    localizations
-	//    snippet
-	//    statistics
-	//    status
-	//    topicDetails
-	parts := []string{`id`, `snippet`, `status`, `contentDetails`, `statistics`}
 
 	q := url.Values{}
 	q.Set(`id`, strings.Join(ids, `,`)) // Channel IDs
@@ -99,4 +103,19 @@ func (s Client) GetIds(ids []string) ([]Item, error) {
 	}
 
 	return nil, tmperr.Error
+}
+
+func (s Client) GetIds(ids []string) ([]Item, error) {
+	parts := []string{`id`, `snippet`, `status`, `contentDetails`, `statistics`}
+	return s.getIds(ids, parts)
+}
+
+// GetIdsStats returns statistics of given channel IDs
+// Since statistics changes more than other video details,
+// it has been split here for better caching (use ETag)
+func (s Client) GetIdsStats(ids []string) ([]Item, error) {
+	parts := []string{
+		`id`, `statistics`,
+	}
+	return s.getIds(ids, parts)
 }
