@@ -24,17 +24,17 @@ type Item struct {
 }
 
 type ID struct {
-	Kind    string `json:"kind"`
+	//Kind    string `json:"kind"`
 	VideoID string `json:"videoId"`
 }
 
 type Snippet struct {
-	PublishedAt          time.Time         `json:"publishedAt"`
 	ChannelID            string            `json:"channelId"`
+	ChannelTitle         string            `json:"channelTitle"`
+	PublishedAt          time.Time         `json:"publishedAt"`
+	PublishTime          time.Time         `json:"publishTime"`
 	Title                string            `json:"title"`
 	Description          string            `json:"description"`
 	Thumbnails           shared.Thumbnails `json:"thumbnails"`
-	ChannelTitle         string            `json:"channelTitle"`
-	LiveBroadcastContent string            `json:"liveBroadcastContent"`
-	PublishTime          string            `json:"publishTime"`
+	LiveBroadcastContent string            `json:"liveBroadcastContent"` // "none"
 }
