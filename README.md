@@ -48,8 +48,9 @@ fmt.Printf(`%v`, res)
 
 ## References
 
-* https://developers.google.com/youtube/v3/docs/videos/list
-* https://developers.google.com/youtube/v3/docs/channels
-* https://developers.google.com/youtube/v3/docs/search/list
-* https://developers.google.com/youtube/v3/docs/playlistItems/list
+* [internal/video](internal/video) - https://developers.google.com/youtube/v3/docs/videos/list
+* [internal/channel](internal/channel) - https://developers.google.com/youtube/v3/docs/channels
+* [internal/search](internal/search) - https://developers.google.com/youtube/v3/docs/search/list
+* [internal/playlist](internal/playlist) - https://developers.google.com/youtube/v3/docs/playlists/list
+* [internal/playlistitem](internal/playlistitem) - https://developers.google.com/youtube/v3/docs/playlistItems/list
 * https://console.cloud.google.com/apis/api/youtube.googleapis.com
