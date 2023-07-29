@@ -3,8 +3,8 @@ package shared
 // Common shared API JSON structs
 
 type PageInfo struct {
-	TotalResults   int64 `json:"totalResults"`
-	ResultsPerPage int64 `json:"resultsPerPage"`
+	TotalResults   uint64 `json:"totalResults"`
+	ResultsPerPage uint64 `json:"resultsPerPage"`
 }
 
 type ThumbImage struct {
