@@ -23,7 +23,7 @@ type Item struct {
 }
 
 type ContentDetails struct {
-	VideoID          string    `json:"videoId"`
+	VideoID          string    `json:"videoId"` // Video's id
 	VideoPublishedAt time.Time `json:"videoPublishedAt"`
 }
 

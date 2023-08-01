@@ -128,11 +128,16 @@ func (s Client) fetchUrl(q url.Values) ([]Item, *shared.Meta, error) {
 			return []Item{}, nil, nil
 		}
 
-		return r.Items,
-			&shared.Meta{
-				ETag:          r.Etag,
-				NextPageToken: r.NextPageToken,
-			}, nil
+		meta := &shared.Meta{
+			ETag:          r.Etag,
+			NextPageToken: r.NextPageToken,
+		}
+
+		if meta.NextPageToken == nil {
+			meta = nil
+		}
+
+		return r.Items, meta, nil
 	}
 
 	// Read error JSON

@@ -98,6 +98,60 @@ func (api YoutubeAPI) GetChannel(channelId string) (*channel.Item, error) {
 	return &res[0], nil
 }
 
+// GetChannelAllVideosPlaylist fetches first channel information containing playlist ID and then fetches playlist meta information.
+// Then you can iterate videos with GetPlaylistVideos()
+func (api YoutubeAPI) GetChannelAllVideosPlaylist(channelId string) (*playlist.Item, error) {
+	item, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if item == nil {
+		return nil, nil
+	}
+
+	return api.GetPlaylist(item.ContentDetails.RelatedPlaylists.Uploads)
+}
+
+// GetChannelAllVideos fetches all videos listed by given channelId
+func (api YoutubeAPI) GetChannelAllVideos(channelId string, custom map[string]string) ([]playlistitem.Item, error) {
+	item, err := api.GetChannel(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if item == nil {
+		return nil, nil
+	}
+
+	if custom == nil {
+		custom = make(map[string]string)
+	}
+
+	// Result list
+	var l []playlistitem.Item
+
+	for {
+		items, meta, err := api.GetPlaylistVideos(item.ContentDetails.RelatedPlaylists.Uploads, custom)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, i := range items {
+			// Add video
+			l = append(l, i)
+		}
+
+		if meta == nil {
+			break
+		}
+
+		custom[`pageToken`] = *meta.NextPageToken
+	}
+
+	return l, nil
+}
+
 // GetChannels fetches multiple channel information from YouTube REST API, see internal/channel for more details
 func (api YoutubeAPI) GetChannels(channelIds []string) ([]channel.Item, error) {
 	return api.channelClient.GetIds(channelIds)
