@@ -28,10 +28,9 @@ func New(apikey string, client *http.Client) *Client {
 
 // GetChannelPlaylists fetches a list of playlist(s) created by some channel
 // Use custom[`pageToken`] = meta.NextPageToken for iterating all pages
-func (s Client) GetChannelPlaylists(channelId string, custom map[string]string) ([]Item, shared.Meta, error) {
-	meta := shared.Meta{}
+func (s Client) GetChannelPlaylists(channelId string, custom map[string]string) ([]Item, *shared.Meta, error) {
 	if channelId == `` {
-		return nil, meta, fmt.Errorf(`no id`)
+		return nil, nil, shared.ErrEmpty
 	}
 
 	// The following list contains the part names that you can include in the parameter value:
@@ -42,7 +41,6 @@ func (s Client) GetChannelPlaylists(channelId string, custom map[string]string) 
 	q.Set(`channelId`, channelId) // Channel ID
 	q.Set(`maxResults`, `50`)
 	q.Set(`part`, strings.Join(parts, `,`))
-	q.Set(`key`, s.apiKey)
 
 	if custom != nil {
 		for k, v := range custom {
@@ -56,53 +54,16 @@ func (s Client) GetChannelPlaylists(channelId string, custom map[string]string) 
 		}
 	}
 
-	resp, err := s.cl.Get(API_URL + `?` + q.Encode())
-	if err != nil {
-		return nil, meta, err
-	}
-
-	defer resp.Body.Close()
-
-	content, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, meta, err
-	}
-
-	if resp.StatusCode == http.StatusOK {
-		var r Result
-		err = json.Unmarshal(content, &r)
-		if err != nil {
-			return nil, meta, err
-		}
-
-		if r.PageInfo.TotalResults == 0 || len(r.Items) == 0 {
-			// No results
-			return []Item{}, meta, nil
-		}
-
-		// For custom parameter so that next page can be queried
-		meta.NextPageToken = r.NextPageToken
-		meta.ETag = r.Etag
-
-		return r.Items, meta, nil
-	}
-
-	var tmperr shared.APIError
-	err = json.Unmarshal(content, &tmperr)
-	if err != nil {
-		return nil, meta, err
-	}
-
-	return nil, meta, tmperr.Error
+	return s.fetchUrl(q)
 }
 
 func (s Client) GetPlaylists(ids []string) ([]Item, error) {
 	if ids == nil {
-		return nil, fmt.Errorf(`nil ids`)
+		return nil, shared.ErrEmpty
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf(`no ids`)
+		return nil, shared.ErrEmpty
 	}
 	if len(ids) > 50 {
 		return nil, fmt.Errorf(`over 50 ids`)
@@ -110,7 +71,7 @@ func (s Client) GetPlaylists(ids []string) ([]Item, error) {
 
 	for idx, id := range ids {
 		if id == `` {
-			return nil, fmt.Errorf(`empty id at pos %d`, idx)
+			return nil, shared.NewErrEmptyIdx(uint(idx))
 		}
 	}
 
@@ -122,40 +83,55 @@ func (s Client) GetPlaylists(ids []string) ([]Item, error) {
 	q.Set(`id`, strings.Join(ids, ``)) // Playlist IDs
 	q.Set(`maxResults`, `50`)
 	q.Set(`part`, strings.Join(parts, `,`))
-	q.Set(`key`, s.apiKey)
 
-	resp, err := s.cl.Get(API_URL + `?` + q.Encode())
+	items, _, err := s.fetchUrl(q)
 	if err != nil {
 		return nil, err
 	}
 
+	return items, nil
+}
+
+func (s Client) fetchUrl(q url.Values) ([]Item, *shared.Meta, error) {
+	q.Set(`key`, s.apiKey)
+
+	resp, err := s.cl.Get(API_URL + `?` + q.Encode())
+	if err != nil {
+		return nil, nil, err
+	}
 	defer resp.Body.Close()
 
 	content, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if resp.StatusCode == http.StatusOK {
 		var r Result
 		err = json.Unmarshal(content, &r)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if r.PageInfo.TotalResults == 0 || len(r.Items) == 0 {
 			// No results
-			return []Item{}, nil
+			return []Item{}, nil, nil
 		}
 
-		return r.Items, nil
+		// For custom parameter so that next page can be queried
+		return r.Items,
+			&shared.Meta{
+				ETag:          r.Etag,
+				NextPageToken: r.NextPageToken,
+			}, nil
 	}
 
+	// Read error JSON
 	var tmperr shared.APIError
 	err = json.Unmarshal(content, &tmperr)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return nil, tmperr.Error
+	return nil, nil, tmperr.Error
 }

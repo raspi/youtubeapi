@@ -46,11 +46,11 @@ func New(apikey string, client *http.Client) *Client {
 //	topicDetails
 func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 	if ids == nil {
-		return nil, fmt.Errorf(`nil ids`)
+		return nil, shared.ErrEmpty
 	}
 
 	if len(ids) == 0 {
-		return nil, fmt.Errorf(`no ids`)
+		return nil, shared.ErrEmpty
 	}
 
 	if len(ids) > 50 {
@@ -59,7 +59,7 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 
 	for idx, id := range ids {
 		if id == `` {
-			return nil, fmt.Errorf(`empty id at pos %d`, idx)
+			return nil, shared.NewErrEmptyIdx(uint(idx))
 		}
 	}
 
@@ -67,6 +67,51 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 	q.Set(`id`, strings.Join(ids, `,`)) // Channel IDs
 	q.Set(`maxResults`, `50`)
 	q.Set(`part`, strings.Join(parts, `,`))
+
+	return s.fetchURL(q)
+}
+
+// GetIds see getIds()
+func (s Client) GetIds(ids []string) ([]Item, error) {
+	parts := []string{`id`, `snippet`, `status`, `contentDetails`, `statistics`}
+	return s.getIds(ids, parts)
+}
+
+// GetIdsStats returns statistics of given channel IDs
+// Since statistics changes more than other channel details,
+// it has been split here for better caching (use ETag)
+func (s Client) GetIdsStats(ids []string) ([]Item, error) {
+	parts := []string{`id`, `statistics`}
+	return s.getIds(ids, parts)
+}
+
+// GetChannelIdFromName tries to resolve channel name such as @FooBar to channel ID
+// This might fail, so try with internal/search.Search() also
+func (s Client) GetChannelIdFromName(name string) (*string, error) {
+	if name == `` {
+		return nil, shared.ErrEmpty
+	}
+
+	parts := []string{`id`, `snippet`}
+
+	q := url.Values{}
+	q.Set(`forUsername`, name) // Channel name
+	q.Set(`maxResults`, `1`)
+	q.Set(`part`, strings.Join(parts, `,`))
+
+	items, err := s.fetchURL(q)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	return &items[0].ChannelID, nil
+}
+
+func (s Client) fetchURL(q url.Values) ([]Item, error) {
 	q.Set(`key`, s.apiKey)
 
 	resp, err := s.cl.Get(API_URL + `?` + q.Encode())
@@ -96,6 +141,7 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 		return r.Items, nil
 	}
 
+	// Read error JSON
 	var tmperr shared.APIError
 	err = json.Unmarshal(content, &tmperr)
 	if err != nil {
@@ -103,19 +149,4 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 	}
 
 	return nil, tmperr.Error
-}
-
-func (s Client) GetIds(ids []string) ([]Item, error) {
-	parts := []string{`id`, `snippet`, `status`, `contentDetails`, `statistics`}
-	return s.getIds(ids, parts)
-}
-
-// GetIdsStats returns statistics of given channel IDs
-// Since statistics changes more than other channel details,
-// it has been split here for better caching (use ETag)
-func (s Client) GetIdsStats(ids []string) ([]Item, error) {
-	parts := []string{
-		`id`, `statistics`,
-	}
-	return s.getIds(ids, parts)
 }

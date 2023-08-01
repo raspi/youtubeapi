@@ -42,13 +42,13 @@ func New(apikey string, client *http.Client) *Client {
 // processingDetails (auth?)
 // recordingDetails (empty?)
 // snippet (default) See: Snippet
-// statistics (views, etc) See: Statistics
+// statistics (views, etc.) See: Statistics
 // status (is embeddable) See: Status
 // suggestions
-// topicDetails (entertainment, etc) See: TopicDetails
+// topicDetails (entertainment, etc.) See: TopicDetails
 func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 	if len(ids) == 0 {
-		return nil, fmt.Errorf(`no ids given`)
+		return nil, shared.ErrEmpty
 	}
 
 	if len(ids) > 50 {
@@ -57,12 +57,12 @@ func (s Client) getIds(ids []string, parts []string) ([]Item, error) {
 
 	for idx, id := range ids {
 		if id == `` {
-			return nil, fmt.Errorf(`empty id at pos %d`, idx)
+			return nil, shared.NewErrEmptyIdx(uint(idx))
 		}
 	}
 
 	if len(parts) == 0 {
-		return nil, fmt.Errorf(`empty parts`)
+		return nil, shared.ErrEmpty
 	}
 
 	// Query string
@@ -125,8 +125,6 @@ func (s Client) GetIds(ids []string) ([]Item, error) {
 // Since statistics changes more than other video details,
 // it has been split here for better caching (use ETag)
 func (s Client) GetIdsStats(ids []string) ([]Item, error) {
-	parts := []string{
-		`id`, `statistics`,
-	}
+	parts := []string{`id`, `statistics`}
 	return s.getIds(ids, parts)
 }

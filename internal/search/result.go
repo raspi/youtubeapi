@@ -9,8 +9,8 @@ import (
 
 type Result struct {
 	//Kind          string          `json:"kind"`
-	Etag          string          `json:"etag"`
-	NextPageToken string          `json:"nextPageToken"`
+	Etag          string          `json:"etag"` // for cache
+	NextPageToken *string         `json:"nextPageToken,omitempty"`
 	RegionCode    string          `json:"regionCode"`
 	PageInfo      shared.PageInfo `json:"pageInfo"`
 	Items         []Item          `json:"items"`
@@ -18,14 +18,16 @@ type Result struct {
 
 type Item struct {
 	//Kind    string  `json:"kind"`
-	Etag    string  `json:"etag"`
-	ID      ID      `json:"id"`
+	Etag    string  `json:"etag"` // for cache
+	ID      ID      `json:"id,omitempty"`
 	Snippet Snippet `json:"snippet"`
 }
 
 type ID struct {
-	//Kind    string `json:"kind"`
-	VideoID string `json:"videoId"`
+	Kind       string  `json:"kind"` // channel, playlist, video
+	VideoID    *string `json:"videoId,omitempty"`
+	ChannelID  *string `json:"channelId,omitempty"`
+	PlaylistID *string `json:"playlistId,omitempty"`
 }
 
 type Snippet struct {
